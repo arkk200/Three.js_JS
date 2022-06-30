@@ -116,11 +116,12 @@ function animation(time) {
             }
         }
     });
-
-    torusKnotMesh.rotation.x = time;
-    torusKnotMesh.rotation.z = time;
-    torusMesh1.rotation.y = time;
-    torusMesh2.rotation.x = -time;
+    // torusKnotMesh.rotation.x = 20 * Math.PI / 180;
+    // torusKnotMesh.rotation.z = time;
+    // torusKnotMesh.rotation.x = time;
+    // torusKnotMesh.rotation.z = time;
+    // torusMesh1.rotation.y = time;
+    // torusMesh2.rotation.x = -time;
     
     renderer.render(scene, camera);
 }

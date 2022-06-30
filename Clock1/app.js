@@ -87,23 +87,14 @@ const secondmat = new THREE.MeshPhongMaterial({
 const hourmesh = new THREE.Mesh(hourgeo, hourmat);
 const minutemesh = new THREE.Mesh(minutegeo, minutemat);
 const secondmesh = new THREE.Mesh(secondgeo, secondmat);
-const test1 = new THREE.Mesh(hourgeo, hourmat);
-const test2 = new THREE.Mesh(hourgeo, hourmat);
-const test3 = new THREE.Mesh(hourgeo, hourmat);
 
 hourmesh.position.set(0,7,2.8);
 minutemesh.position.set(0,7,2.9);
 secondmesh.position.set(0,7,3);
-test1.position.set(7,0,3);
-test2.position.set(-7,0,3);
-test3.position.set(0,-7,3);
 
 scene.add(hourmesh);
 scene.add(minutemesh);
 scene.add(secondmesh);
-scene.add(test1);
-scene.add(test2);
-scene.add(test3);
 
 // Clock
 
