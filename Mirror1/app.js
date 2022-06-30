@@ -1,130 +1,126 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.140.0'
-import threejsOrbitControls from 'https://cdn.skypack.dev/threejs-orbit-controls';
 
-// Scene
 const scene = new THREE.Scene();
 
-// Camera
 const camera = new THREE.PerspectiveCamera(
     45,
     window.innerWidth/window.innerHeight,
     0.1,
     1000
 );
-camera.position.set(0, 4, 9);
+camera.position.z = 70;
 
-// Renderer
+const dl = new THREE.DirectionalLight(0xffffff,3);
+const al = new THREE.AmbientLight(0xffffff, 0.9);
+dl.position.set(-1, 2, 25);
+scene.add(dl);
+scene.add(al);
+
 const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// OrbitControls
-const controls = new threejsOrbitControls(camera, renderer.domElement);
-
-// Light
-const light = new THREE.DirectionalLight(0xffffff, 5);
-light.position.set(-1, 2, 4);
-scene.add(light);
-scene.add(new THREE.AmbientLight(0xffffff, 0.2));
-
-// RenderTarget
 const renderTargetOptions = {
     format: THREE.RGBAFormat,
     generateMipmaps: true,
     minFilter: THREE.LinearMipmapLinearFilter
 }
 
-const sphereRenderTarget = new THREE.WebGLCubeRenderTarget(512, renderTargetOptions);
+const sphereRenderTarget = new THREE.WebGLCubeRenderTarget(1024, renderTargetOptions);
 const sphereCamera = new THREE.CubeCamera(0.1, 1000, sphereRenderTarget);
+
 const spherePivot = new THREE.Object3D();
-
-const cylinderRenderTarget = new THREE.WebGLCubeRenderTarget(2048, renderTargetOptions);
-const cylinderCamera = new THREE.CubeCamera(0.1, 1000, cylinderRenderTarget);
-const cylinderPivot = new THREE.Object3D();
-
-const torusRenderTarget = new THREE.WebGLCubeRenderTarget(2048, renderTargetOptions);
-const torusCamera = new THREE.CubeCamera(0.1, 1000, torusRenderTarget);
-const torusPivot = new THREE.Object3D();
-
-const planeRenderTarget = new THREE.WebGLCubeRenderTarget(2048, renderTargetOptions);
-const planeCamera = new THREE.CubeCamera(0.1, 1000, planeRenderTarget);
-const planePivot = new THREE.Object3D();
-
-// Model
-// Sphere
-const sphereGeometry = new THREE.SphereGeometry(1.5);
-const sphereMaterail = new THREE.MeshPhongMaterial({
-    color: 0xffffff,
-    envMap: sphereRenderTarget.texture, reflectivity: 0.95
+const sphereGeo = new THREE.SphereGeometry(2.5, 64, 24);
+const sphereMat = new THREE.MeshPhongMaterial({
+    color:0xffffff,
+    envMap:sphereRenderTarget.texture,
+    reflectivity: 0.9
 });
-const sphere = new THREE.Mesh(sphereGeometry, sphereMaterail);
-
-spherePivot.add(sphere);
+const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+spherePivot.add(sphereMesh);
 spherePivot.add(sphereCamera);
-spherePivot.position.set(1, 0, 1);
+spherePivot.position.set(0,0,0);
 scene.add(spherePivot);
 
-// Cylinder
-const cylinderGeometry = new THREE.CylinderGeometry(0.5, 1, 3, 32);
-const cylinderMaterail = new THREE.MeshPhongMaterial({
-    color: 0xffffff,
-    envMap: cylinderRenderTarget.texture, reflectivity: 0.95
+const torusKnotRenderTarget = new THREE.WebGLCubeRenderTarget(1024, renderTargetOptions);
+const torusKnotCamera = new THREE.CubeCamera(0.1, 1000, torusKnotRenderTarget);
+
+const torusKnotPivot = new THREE.Object3D();
+const torusKnotGeo = new THREE.TorusKnotGeometry(10, 1.5, 128, 16);
+const torusKnotMat = new THREE.MeshPhongMaterial({
+    color:0xffffff,
+    envMap:torusKnotRenderTarget.texture,
+    reflectivity: 0.9
 });
-const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterail);
+const torusKnotMesh = new THREE.Mesh(torusKnotGeo, torusKnotMat);
+torusKnotPivot.add(torusKnotMesh);
+torusKnotPivot.add(torusKnotCamera);
+torusKnotPivot.position.set(0,0,0);
+scene.add(torusKnotPivot);
 
-cylinderPivot.add(cylinder);
-cylinderPivot.add(cylinderCamera);
-cylinderPivot.position.set(-1, 0, -1);
-scene.add(cylinderPivot);
+const torusRenderTarget = new THREE.WebGLCubeRenderTarget(2048, renderTargetOptions);
 
-const torusGeometry = new THREE.TorusGeometry(4, 0.5, 24, 64);
-const torusMaterial = new THREE.MeshPhongMaterial({
+const torusCamera1 = new THREE.CubeCamera(0.1, 1000, torusRenderTarget);
+
+const torusPivot1 = new THREE.Object3D();
+const torusGeometry1 = new THREE.TorusGeometry(5, 0.5, 24, 64);
+const torusMaterial1 = new THREE.MeshPhongMaterial({
     color: 0xffffff,
     envMap:torusRenderTarget.texture, reflectivity: 0.95
 });
-const torus = new THREE.Mesh(torusGeometry, torusMaterial);
-torus.rotation.x = Math.PI / 2;
+const torusMesh1 = new THREE.Mesh(torusGeometry1, torusMaterial1);
 
-torusPivot.add(torus);
-torusPivot.add(torusCamera);
-scene.add(torusPivot);
-torus.name = "torus";
+torusPivot1.add(torusMesh1);
+torusPivot1.add(torusCamera1);
+scene.add(torusPivot1);
 
-const planeGeometry = new THREE.PlaneGeometry(12, 12);
-const planeMaterail = new THREE.MeshPhongMaterial({
+const torusCamera2 = new THREE.CubeCamera(0.1, 1000, torusRenderTarget);
+
+const torusPivot2 = new THREE.Object3D();
+const torusGeometry2 = new THREE.TorusGeometry(7, 0.5, 24, 64);
+const torusMaterial2 = new THREE.MeshPhongMaterial({
     color: 0xffffff,
-    envMap: planeRenderTarget.texture, reflectivity:0.95
+    envMap:torusRenderTarget.texture, reflectivity: 0.95
 });
-const plane = new THREE.Mesh(planeGeometry, planeMaterail);
-planePivot.add(plane);
-planePivot.add(planeCamera);
-plane.rotation.x = -Math.PI / 2;
-planePivot.position.y = -4.8;
-scene.add(planePivot);
+const torusMesh2 = new THREE.Mesh(torusGeometry2, torusMaterial2);
 
-// Rendering
-renderer.setAnimationLoop(animate);
+torusPivot2.add(torusMesh2);
+torusPivot2.add(torusCamera2);
+scene.add(torusPivot2);
 
-function animate(time){
+function onResize(){
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+window.addEventListener('resize', onResize);
+
+renderer.setAnimationLoop(animation);
+
+function animation(time) {
     time *= 0.001;
 
     scene.traverse(obj => {
         if(obj instanceof THREE.Object3D){
+            // console.log(obj);
             const mesh = obj.children[0];
             const cubeCamera = obj.children[1];
-            // console.log(mesh instanceof THREE.Mesh)
+            // console.log(obj.children[0], obj.children[1]);
+            // console.log(mesh instanceof THREE.Mesh);
             if(mesh instanceof THREE.Mesh && cubeCamera instanceof THREE.CubeCamera){
                 mesh.visible = false;
                 cubeCamera.update(renderer, scene);
                 mesh.visible = true;
+                // console.log('test');
             }
         }
     });
 
-    const torus = scene.getObjectByName("torus");
-    if(torus){
-        torus.rotation.x = Math.sin(time);
-    }
-    controls.update();
+    torusKnotMesh.rotation.x = time;
+    torusKnotMesh.rotation.z = time;
+    torusMesh1.rotation.y = time;
+    torusMesh2.rotation.x = -time;
+    
     renderer.render(scene, camera);
 }
