@@ -35,7 +35,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // Controls
-const controls = new threejsOrbitControls(camera, renderer.domElement);
+// const controls = new threejsOrbitControls(camera, renderer.domElement);
 
 // Summon Dice Functions
 function SetDotPos(dotPosx, dotPosy, dotPosz, dotColor, size){
@@ -237,7 +237,11 @@ function SummonPlayerSign(playerSignColor = 0xff0000, str, posx){
     pSignGroup.position.set(0, 0.01, -5.5);
 }
 
+// Summon Option Checking Point
+const optioncheckingPoint = CheckingPoint(0xff0000, 1, 90, -4, -2.8 - 2.15 + 0.35);
+
 // Summon Score Table Function
+
 function SummonTable(tableColor = 0xffffff, textColor = 0x000000, posx = 0, posy = 0, posz = -15, size = 8){
     const tableMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(size, size*1.6),
@@ -247,22 +251,44 @@ function SummonTable(tableColor = 0xffffff, textColor = 0x000000, posx = 0, posy
         })
     );
     SummonCategories(textColor);
-    SummonTableCells(0xffffff, 0x000000, 1.5, 5.6, 1.4, 0.6, 0.7, 8, 1.0, 0.01, -2.15);
-    SummonTableCells(0xffffff, 0x000000, 1.5, 5.6, 1.4, 0.6, 0.7, 8, 2.6, 0.01, -2.15);
 
-    SummonTableCells(0xffffff, 0x000000, 1.5, 4.9, 1.4, 0.6, 0.7, 7, 1.0, 0.01, 3.65);
+    // cellColor, bodyColor, width, height, cellWidth, cellHeight, distance, number(How many cells), posx, posy, posz
+    SummonTableCells(0xffffff, 0x000000, 1.5, 5.6, 1.4, 0.6, 0.7, 8, 1.0, 0.01, -2.15);
+    SummonTableCells(0xffffff, 0x000000, 1.5, 5.6, 1.4, 0.6, 0.7, 8, 2.6, 0.01, -2.15); // -2.8 - 2.15 + 0.35 + 0.7 * 5
+
+    SummonTableCells(0xffffff, 0x000000, 1.5, 4.9, 1.4, 0.6, 0.7, 7, 1.0, 0.01, 3.65); // -2.45 + 3.65 + 0.35
     SummonTableCells(0xffffff, 0x000000, 1.5, 4.9, 1.4, 0.6, 0.7, 7, 2.6, 0.01, 3.65);
 
     // Add tableMesh to tableGroup
-    SummonPlayerSign(0xff0000, 'p1', 1);
-    SummonPlayerSign(0xff0000, 'p2', 2.6);
+    SummonPlayerSign(0xff0000, 'P1', 1);
+    SummonPlayerSign(0x0000ff, 'P2', 2.6);
     tableGroup.add(pSignGroup);
     tableMesh.rotation.x = Math.PI/2;
     tableGroup.add(tableMesh);
+    tableGroup.add(optioncheckingPoint);
     tableGroup.position.set(posx, posy, posz);
     return tableGroup;
 }
 
+function CheckingPoint(checkingPointColor = 0xff0000, size = 1, roty = 0, posx = 0, posz = 0){
+    const cpGroup = new THREE.Group();
+    const cpMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(0, 0.2 * size, 0.6 * size, 32 * size),
+        new THREE.MeshPhongMaterial({color:checkingPointColor})
+    );
+    const cpBarMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08 * size, 0.08 * size, 0.6 * size, 32 * size),
+        new THREE.MeshPhongMaterial({color:checkingPointColor})
+    )
+    cpBarMesh.rotation.x = Math.PI / 2;
+    cpMesh.rotation.x = Math.PI / 2;
+    cpBarMesh.position.z = -0.6 * size;
+    cpGroup.add(cpMesh);
+    cpGroup.add(cpBarMesh);
+    cpGroup.rotation.y = Math.PI / 180 * roty;
+    cpGroup.position.set(posx, 0, posz);
+    return cpGroup;
+}
 
 // Summon Score Table
 const table = SummonTable(0xffffff, 0x000000, 0, 0, -15, 8);
@@ -283,21 +309,8 @@ scene.add(dices[3]);
 scene.add(dices[4]);
 
 // Checking Point
-const cpGroup = new THREE.Group();
-const cpMesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(0, 0.2, 0.6, 32),
-    new THREE.MeshPhongMaterial({color:0xff0000})
-);
-const cpBarMesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.08, 0.08, 0.6, 32),
-    new THREE.MeshPhongMaterial({color:0xff0000})
-)
-cpBarMesh.rotation.x = Math.PI / 2;
-cpMesh.rotation.x = Math.PI / 2;
-cpBarMesh.position.z = -0.6;
-cpGroup.add(cpMesh);
-cpGroup.add(cpBarMesh);
-scene.add(cpGroup);
+const checkingPoint = CheckingPoint();
+scene.add(checkingPoint);
 
 // CheckBox
 let checkBoxes = [1, 1, 1, 1, 1];
@@ -333,12 +346,14 @@ let firstRoll = true;
 
 let count = 3;
 
-let moveSpeed = 0.1;
+let setReset = false;
+let moveSpeed = 0;
 
 let cpPosx = 0;
 
+let selectNum = 0;
+
 function animation(){
-    // categoriesTextGroup.rotation.x += 0.01;
     if(isEnter){
         for(let i = 0; i < 5; i++){
             if(checkBoxes[i] === 1){
@@ -382,14 +397,27 @@ function animation(){
         SetCheckBox();
         firstRoll = false;
     }
-    if(count === 0){
-        scene.remove(cpGroup);
+    if(count === 0 && moveSpeed >= 0.001){
+        console.log(`Count Test ${count}`);
+        tableGroup.add(optioncheckingPoint);
+        scene.remove(checkingPoint);
         camera.position.z -= moveSpeed;
         camera.position.y += moveSpeed * 1.6;
         table.position.z += moveSpeed * 1.4;
         moveSpeed *= 0.98;
     }
-    cpGroup.position.set(-4 + cpPosx * 2, 0, -1.5);
+    if(setReset){
+        console.log(`setReset, Count Test ${count}`);
+        scene.add(checkingPoint);
+        tableGroup.remove(optioncheckingPoint);
+        camera.position.z += moveSpeed;
+        camera.position.y -= moveSpeed * 1.6;
+        table.position.z -= moveSpeed * 1.4;
+        moveSpeed *= 0.98;
+        count = 3;
+        if(moveSpeed < 0.001) setReset = false;
+    }
+    checkingPoint.position.set(-4 + cpPosx * 2, 0, -1.5);
     renderer.render(scene, camera);
 }
 
@@ -408,23 +436,34 @@ window.addEventListener('keydown', e => {
                 CheckBox(cpPosx);
                 break;
             case 'Enter':
-                let chck = 0;
-                checkBoxes.forEach((value) => {
-                    if(value == 1){
-                        chck = 1;
-                    }
-                });
-                if(chck === 1) {isEnter = true; count--;}
-                else {count = 0};
+                if(moveSpeed < 0.001){
+                    let chck = 0;
+                    checkBoxes.forEach((value) => {
+                        if(value == 1) chck = 1;
+                    });
+                    if(chck === 1) {isEnter = true; count--;}
+                    else {count = 0;}
+                    if(count == 0) moveSpeed = 0.1;
+                    break;
+                }
         }
     else{ // You rolled the dice for count!
         switch(code){
             case 'ArrowUp':
+                if(selectNum > 0) {selectNum--; optioncheckingPoint.position.z -= 0.7 + (selectNum == 5 ? (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6) : 0); }
                 break;
             case 'ArrowDown':
+                if(selectNum < 11) {selectNum++; optioncheckingPoint.position.z += 0.7 + (selectNum == 6 ? (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6) : 0); }
                 break;
             case 'Enter':
-
+                if(moveSpeed < 0.001){
+                    moveSpeed = 0.1;
+                    firstRoll = true;
+                    setReset = true;
+                    checkBoxes = [1, 1, 1, 1, 1];
+                    SetCheckBox();
+                }
+                break;
         }
     }
 });
