@@ -1,6 +1,7 @@
-import * as THREE from 'https://cdn.skypack.dev/three@0.140.0';
+import * as THREE from 'https://cdn.skypack.dev/three@0.133';
 import threejsOrbitControls from 'https://cdn.skypack.dev/threejs-orbit-controls';
-import { FontLoader, TextGeometry } from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
+import {FontLoader} from "https://cdn.skypack.dev/three@0.133/examples/jsm/loaders/FontLoader.js";
+import {TextGeometry} from "https://cdn.skypack.dev/three@0.133/examples/jsm/geometries/TextGeometry.js";
 
 // Scene
 const scene = new THREE.Scene();
@@ -15,6 +16,7 @@ const camera = new THREE.PerspectiveCamera(
 );
 // camera.position.y = 12;
 camera.position.set(0, 12, 2);
+camera.rotation.x = Math.PI / -2;
 camera.lookAt(0, 0, 0);
 
 // Light
@@ -33,9 +35,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // Controls
-// const controls = new threejsOrbitControls(camera, renderer.domElement);
+const controls = new threejsOrbitControls(camera, renderer.domElement);
 
-// Summon Dice Function
+// Summon Dice Functions
 function SetDotPos(dotPosx, dotPosy, dotPosz, dotColor, size){
     let dotMesh;
     dotMesh = new THREE.Mesh(
@@ -105,16 +107,156 @@ function SummonDice(diceColor = 0xffffff, dotColor = 0xff0000, size = 1, posx = 
     return diceGroup;
 }
 
+// Summon Text Function
+let textMesh;
+const categoriesTextGroup = new THREE.Group();
+
+function SummonCategoriesText(str, posx = 0, posy = 0, posz = 0, siz = 1, textColor = 0x000000) {
+    const loader = new FontLoader();
+    loader.load('./font/Teko_Bold.json', font => {
+        const textGeo = new TextGeometry(str, {
+            font: font,
+            size: 0.5 * siz,
+            height: 0.1,
+            curveSegments: 10,
+            bevelEnabled: true,
+            bevelThickness: 0,
+            bevelSize: 0.0001,
+            bevelOffset: 0,
+            bevelSegments: 1
+        });
+        textMesh = new THREE.Mesh(textGeo, new THREE.MeshPhongMaterial({color:textColor}));
+        textMesh.position.set(posx, posy, posz);
+        textMesh.rotation.x = Math.PI / -2;
+        categoriesTextGroup.add(textMesh);
+    });
+}
+
+const pSignTextGroup = new THREE.Group();
+function SummonPlayerSignText(str, posx = 0, posy = 0, posz = 0, siz = 1, textColor = 0xffffff) {
+    const loader = new FontLoader();
+    loader.load('./font/Teko_Bold.json', font => {
+        const textGeo = new TextGeometry(str, {
+            font: font,
+            size: 0.5 * siz,
+            height: 0.1,
+            curveSegments: 10,
+            bevelEnabled: true,
+            bevelThickness: 0,
+            bevelSize: 0.0001,
+            bevelOffset: 0,
+            bevelSegments: 1
+        });
+        textGeo.center();
+        textMesh = new THREE.Mesh(textGeo, new THREE.MeshPhongMaterial({color:textColor}));
+        textMesh.position.set(posx, posy, posz);
+        textMesh.rotation.x = Math.PI / -2;
+        pSignTextGroup.add(textMesh);
+    });
+}
+
+const tableGroup = new THREE.Group();
+
+function SummonCell(cellColor = 0xffffff, cwdth, chght, posx, posy, posz){
+    const tableCellMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(cwdth, chght),
+        new THREE.MeshPhongMaterial({
+            color:cellColor,
+            side : THREE.DoubleSide
+        })
+    );
+    tableCellMesh.rotation.x = Math.PI / 2;
+    tableCellMesh.position.set(posx, posy, posz);
+    return tableCellMesh;
+}
+
+function SummonTableCells(cellColor = 0xffffff, bodyColor = 0x000000, wdth, hght, cwdth, chght, dstnc, num, posx, posy, posz){
+    const tableCellGroup = new THREE.Group();
+    const tableCellBodyMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(wdth, hght),
+        new THREE.MeshPhongMaterial({
+            color:bodyColor,
+            side:THREE.DoubleSide
+        })
+    );
+
+    for(let i = 0; i < num; i++){
+        tableCellGroup.add(SummonCell(cellColor, cwdth, chght, 0, 0.01, dstnc * i - hght/2 + dstnc/2));
+    }
+
+    // Add Categories to tableGroup
+    tableCellBodyMesh.rotation.x = Math.PI / 2;
+
+    // Add tableCellBody to tableGroup
+    tableCellGroup.add(tableCellBodyMesh);
+    tableCellGroup.position.set(posx, posy, posz);
+    tableGroup.add(tableCellGroup);
+}
+
+function SummonCategories(textColor = 0x000000){
+    const categoriesGroup = new THREE.Group();
+    SummonCategoriesText('Categories', 0, 0, 0, 0.7, textColor = textColor); //
+    SummonCategoriesText('Aces', 0.7, 0, 0.7, 1, textColor = textColor);
+    SummonCategoriesText('Deuces', 0.7, 0 ,1.4, 1, textColor = textColor);
+    SummonCategoriesText('Threes', 0.7, 0 , 2.1, 1, textColor = textColor);
+    SummonCategoriesText('Fours', 0.7, 0 , 2.8, 1, textColor = textColor);
+    SummonCategoriesText('Fives', 0.7, 0 , 3.5, 1, textColor = textColor);
+    SummonCategoriesText('Sixes', 0.7, 0 , 4.2, 1, textColor = textColor); //
+    SummonCategoriesText('Subtotal', 0, 0, 4.9, 0.7, textColor = textColor);
+    SummonCategoriesText('+35 Bonus', 0, 0, 5.6, 1, textColor = textColor);
+    SummonCategoriesText('Bonus if     -     are over 63 points', 0, 0, 6.03 , 0.7, textColor = textColor);
+    SummonCategoriesText('Choice', 0.7, 0, 6.8, 1, textColor = textColor); //
+    SummonCategoriesText('4 of a Kind', 0.7, 0, 7.5, 1, textColor = textColor);
+    SummonCategoriesText('Full House', 0.7, 0, 8.2, 1, textColor = textColor);
+    SummonCategoriesText('S. Straight', 0.7, 0, 8.9, 1, textColor = textColor);
+    SummonCategoriesText('L. Straight', 0.7, 0, 9.6, 1, textColor = textColor);
+    SummonCategoriesText('Yacht', 0.7, 0, 10.3, 1, textColor = textColor);
+    SummonCategoriesText('Total', 0.7, 0, 11, 1, textColor = textColor); //
+    
+    // Summon Categories
+    categoriesGroup.add(categoriesTextGroup);
+    categoriesGroup.position.set(-3.5, 0, -5);
+    tableGroup.add(categoriesGroup);
+}
+
+const pSignGroup = new THREE.Group();
+function SummonPlayerSign(playerSignColor = 0xff0000, str, posx){
+    const pSignMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.5, 0.9),
+        new THREE.MeshPhongMaterial({
+            color:playerSignColor,
+            side: THREE.DoubleSide
+        })
+    );
+    pSignMesh.rotation.x = Math.PI / -2;
+    pSignMesh.position.x = posx;
+    pSignGroup.add(pSignMesh);
+    SummonPlayerSignText(str, posx, 0.01, 0, 1, 0xffffff);
+    pSignGroup.add(pSignTextGroup);
+    // pSignGroup.position.set(1, 0.02,-3.5);
+    pSignGroup.position.set(0, 0.01, -5.5);
+}
+
 // Summon Score Table Function
-function SummonScoreTable(tableColor = 0xffffff, textColor = 0x000000, posx = 0, posy = 0, posz = -15, size = 8){
-    const tableGroup = new THREE.Group();
+function SummonTable(tableColor = 0xffffff, textColor = 0x000000, posx = 0, posy = 0, posz = -15, size = 8){
     const tableMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(size, size*1.6),
         new THREE.MeshPhongMaterial({
             color:tableColor,
             side: THREE.DoubleSide
-            })
-        );
+        })
+    );
+    SummonCategories(textColor);
+    SummonTableCells(0xffffff, 0x000000, 1.5, 5.6, 1.4, 0.6, 0.7, 8, 1.0, 0.01, -2.15);
+    SummonTableCells(0xffffff, 0x000000, 1.5, 5.6, 1.4, 0.6, 0.7, 8, 2.6, 0.01, -2.15);
+
+    SummonTableCells(0xffffff, 0x000000, 1.5, 4.9, 1.4, 0.6, 0.7, 7, 1.0, 0.01, 3.65);
+    SummonTableCells(0xffffff, 0x000000, 1.5, 4.9, 1.4, 0.6, 0.7, 7, 2.6, 0.01, 3.65);
+
+    // Add tableMesh to tableGroup
+    SummonPlayerSign(0xff0000, 'p1', 1);
+    SummonPlayerSign(0xff0000, 'p2', 2.6);
+    tableGroup.add(pSignGroup);
     tableMesh.rotation.x = Math.PI/2;
     tableGroup.add(tableMesh);
     tableGroup.position.set(posx, posy, posz);
@@ -122,11 +264,11 @@ function SummonScoreTable(tableColor = 0xffffff, textColor = 0x000000, posx = 0,
 }
 
 
-// SummonScoreTable
-const table = SummonScoreTable();
+// Summon Score Table
+const table = SummonTable(0xffffff, 0x000000, 0, 0, -15, 8);
 scene.add(table);
 
-// SummonDice
+// Summon Dice
 const dices = [
     SummonDice(0xffffff, 0x000000, 1, -4, 0, 0),
     SummonDice(0xffffff, 0x000000, 1, -2, 0, 0),
@@ -140,7 +282,7 @@ scene.add(dices[2]);
 scene.add(dices[3]);
 scene.add(dices[4]);
 
-// CheckingPoint
+// Checking Point
 const cpGroup = new THREE.Group();
 const cpMesh = new THREE.Mesh(
     new THREE.CylinderGeometry(0, 0.2, 0.6, 32),
@@ -160,7 +302,7 @@ scene.add(cpGroup);
 // CheckBox
 let checkBoxes = [1, 1, 1, 1, 1];
 
-// SummonDiceCheckBox()
+// Summon Dice CheckBox Function
 SetCheckBox();
 function SetCheckBox(){
     for(let i = 0; i < 5; i++){
@@ -173,6 +315,7 @@ function SetCheckBox(){
     }
 }
 
+// Check Box Function
 function CheckBox(index){
     if(!firstRoll){ // First rolling the dices must be rolling all the dices.
         if(checkBoxes[index] === 0) checkBoxes[index] = 1;
@@ -195,6 +338,7 @@ let moveSpeed = 0.1;
 let cpPosx = 0;
 
 function animation(){
+    // categoriesTextGroup.rotation.x += 0.01;
     if(isEnter){
         for(let i = 0; i < 5; i++){
             if(checkBoxes[i] === 1){
