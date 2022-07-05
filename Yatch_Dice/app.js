@@ -110,7 +110,6 @@ function SummonDice(diceColor = 0xffffff, dotColor = 0xff0000, size = 1, posx = 
 // Summon Text Function
 let textMesh;
 const categoriesTextGroup = new THREE.Group();
-
 function SummonCategoriesText(str, posx = 0, posy = 0, posz = 0, siz = 1, textColor = 0x000000) {
     const loader = new FontLoader();
     loader.load('./font/Teko_Bold.json', font => {
@@ -152,6 +151,29 @@ function SummonPlayerSignText(str, posx = 0, posy = 0, posz = 0, siz = 1, textCo
         textMesh.position.set(posx, posy, posz);
         textMesh.rotation.x = Math.PI / -2;
         pSignTextGroup.add(textMesh);
+    });
+}
+
+const OptionScoresTextGroup = new THREE.Group();
+function SummonOptionScoresText(str, posx = 0, posy = 0, posz = 0, siz = 1, textColor = 0x000000){
+    const loader = new FontLoader();
+    loader.load('./font/Teko_Bold.json', font => {
+        const textGeo = new TextGeometry(str, {
+            font: font,
+            size: 0.5 * siz,
+            height: 0.1,
+            curveSegments: 10,
+            bevelEnabled: true,
+            bevelThickness: 0,
+            bevelSize: 0.0001,
+            bevelOffset: 0,
+            bevelSegments: 1
+        });
+        textGeo.center();
+        textMesh = new THREE.Mesh(textGeo, new THREE.MeshPhongMaterial({color:textColor}));
+        textMesh.position.set(posx, posy, posz);
+        textMesh.rotation.x = Math.PI / -2;
+        OptionScoresTextGroup.add(textMesh);
     });
 }
 
@@ -237,11 +259,31 @@ function SummonPlayerSign(playerSignColor = 0xff0000, str, posx){
     pSignGroup.position.set(0, 0.01, -5.5);
 }
 
+let pChange = 0; // P1: 0, P2: 1
+
+// [Aces, Deuces, Threes, Fours, Fives, Sixes, Choice, 4 of a Kind, Full House, S. Straight, L. Straight, Yacht]
+const optionsP1 = ['', '', '', '', '', '', '', '', '', '', '', ''];
+const optionsP2 = ['', '', '', '', '', '', '', '', '', '', '', ''];
+
+function SummonOptionScores(textColor = 0x000000, posx, posy, posz){
+    for(let i = 0; i < 12; i++){
+        SummonOptionScoresText(String((pChange === 0 ? optionsP1[i] : optionsP2[i])), posx + pChange * 1.6, posy, i * 0.7 + (i > 5 ? (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6): 0), 1, textColor);
+    }
+    let sum = 0;
+    if(pChange === 0) optionsP1.forEach((value) => {
+        sum += Number(value);
+    })
+    else optionsP2.forEach((value) => {
+        sum += Number(value);
+    })
+    OptionScoresTextGroup.position.set(posx, posy, posz);
+    tableGroup.add(OptionScoresTextGroup);
+}
+
 // Summon Option Checking Point
 const optioncheckingPoint = CheckingPoint(0xff0000, 1, 90, -4, -2.8 - 2.15 + 0.35);
 
 // Summon Score Table Function
-
 function SummonTable(tableColor = 0xffffff, textColor = 0x000000, posx = 0, posy = 0, posz = -15, size = 8){
     const tableMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(size, size*1.6),
@@ -253,10 +295,10 @@ function SummonTable(tableColor = 0xffffff, textColor = 0x000000, posx = 0, posy
     SummonCategories(textColor);
 
     // cellColor, bodyColor, width, height, cellWidth, cellHeight, distance, number(How many cells), posx, posy, posz
-    SummonTableCells(0xffffff, 0x000000, 1.5, 5.6, 1.4, 0.6, 0.7, 8, 1.0, 0.01, -2.15);
+    SummonTableCells(0xffffff, 0x000000, 1.5, 5.6, 1.4, 0.6, 0.7, 8, 1, 0.01, -2.15);
     SummonTableCells(0xffffff, 0x000000, 1.5, 5.6, 1.4, 0.6, 0.7, 8, 2.6, 0.01, -2.15); // -2.8 - 2.15 + 0.35 + 0.7 * 5
 
-    SummonTableCells(0xffffff, 0x000000, 1.5, 4.9, 1.4, 0.6, 0.7, 7, 1.0, 0.01, 3.65); // -2.45 + 3.65 + 0.35
+    SummonTableCells(0xffffff, 0x000000, 1.5, 4.9, 1.4, 0.6, 0.7, 7, 1, 0.01, 3.65); // -2.45 + 3.65 + 0.35
     SummonTableCells(0xffffff, 0x000000, 1.5, 4.9, 1.4, 0.6, 0.7, 7, 2.6, 0.01, 3.65);
 
     // Add tableMesh to tableGroup
@@ -337,11 +379,117 @@ function CheckBox(index){
     }
 }
 
+let diceNumber = [1, 1, 1, 1, 1];
+
+function Aces2Sixes(selectNum){
+    let sum = 0;
+    diceNumber.forEach((value) => {
+        if(value == selectNum) sum += selectNum;
+    })
+    return sum;
+}
+
+function Choice(){
+    let sum = 0;
+    diceNumber.forEach((value) => {
+        sum += value;
+    })
+    return sum;
+}
+function FourOfAKind(){
+    let sum = 0, chck4 = 0;
+    let check4OfAKind = [0, 0, 0, 0, 0, 0];
+    diceNumber.forEach((value) => {
+        check4OfAKind[value-1]++;
+        sum += value;
+    });
+    console.log(check4OfAKind);
+    check4OfAKind.forEach((value) => {
+        if(value >= 4) chck4 = 1;
+    })
+    if(chck4 === 1) return sum;
+    else return 0;
+}
+function FullHouse(){
+    let sum = 0, threeChck = 0, twoChck = 0;
+    let checkFullHouse = [0, 0, 0, 0, 0, 0];
+    diceNumber.forEach((value) => {
+        checkFullHouse[value-1]++;
+        sum += value;
+    });
+    checkFullHouse.forEach((value) => {
+        if(value == 3) threeChck = 1;
+        if(value == 2) twoChck = 1;
+    });
+    if(threeChck === 1 && twoChck === 1) return sum;
+    else return 0;
+}
+function SmallStraight(){
+    let chckSmallStr = 0;
+    diceNumber.sort();
+    for(let i = 0; i < 4; i++){
+        if(diceNumber[i+1] - diceNumber[i] === 1) chckSmallStr++;
+    }
+    if(chckSmallStr >= 3) return 15;
+    else return 0;
+}
+function LargeStraight(){
+    let chckLargeStr = 0;
+    diceNumber.sort();
+    for(let i = 0; i < 4; i++){
+        if(diceNumber[i+1] - diceNumber[i] === 1) chckLargeStr++;
+    }
+    if(chckLargeStr >= 4) return 30;
+    else return 0;
+}
+function Yacht(){
+    let chckYacht = 1;
+    diceNumber.forEach((value) => {
+        if(diceNumber[0] !== diceNumber[value]) chckYacht = 0;
+    })
+    if(chckYacht === 1) return 50;
+    else return 0
+}
+
+function CheckOption(selectNum){
+    let optionRes = 0;
+    if(selectNum < 6){
+        optionRes = Aces2Sixes(selectNum+1);
+    }
+    switch(selectNum){
+        case 6: optionRes = Choice();
+            break;
+        case 7: optionRes = FourOfAKind();
+            break;
+        case 8: optionRes = FullHouse();
+            break;
+        case 9: optionRes = SmallStraight();
+            break;
+        case 10: optionRes = LargeStraight();
+            break;
+        case 11: optionRes = Yacht();
+            break;
+    }
+    if(pChange === 0) {optionsP1[selectNum] = optionRes}
+    else {optionsP2[selectNum] = optionRes}
+    SummonOptionScores(0x000000, 0.5, 0.01,  -2.8 - 2.15 + 0.35);
+    
+    console.log(optionsP1, optionsP2);
+}
+
+// OnResize
+function OnResize(){
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+window.addEventListener('resize', OnResize);
+
 // Rendering
 renderer.setAnimationLoop(animation);
 
 let isEnter = false;
-let diceNumber = [1, 1, 1, 1, 1];
+
 let firstRoll = true;
 
 let count = 3;
@@ -398,7 +546,6 @@ function animation(){
         firstRoll = false;
     }
     if(count === 0 && moveSpeed >= 0.001){
-        console.log(`Count Test ${count}`);
         tableGroup.add(optioncheckingPoint);
         scene.remove(checkingPoint);
         camera.position.z -= moveSpeed;
@@ -407,14 +554,12 @@ function animation(){
         moveSpeed *= 0.98;
     }
     if(setReset){
-        console.log(`setReset, Count Test ${count}`);
         scene.add(checkingPoint);
         tableGroup.remove(optioncheckingPoint);
         camera.position.z += moveSpeed;
         camera.position.y -= moveSpeed * 1.6;
         table.position.z -= moveSpeed * 1.4;
         moveSpeed *= 0.98;
-        count = 3;
         if(moveSpeed < 0.001) setReset = false;
     }
     checkingPoint.position.set(-4 + cpPosx * 2, 0, -1.5);
@@ -424,7 +569,7 @@ function animation(){
 // KeyDown or Click Event
 window.addEventListener('keydown', e => {
     const code = e.code;
-    if(count !== 0)
+    if(count !== 0) // Count isn't zero = You didn't roll the dice for all counts.
         switch(code){
             case 'ArrowLeft':
                 if(cpPosx) cpPosx--;
@@ -447,7 +592,7 @@ window.addEventListener('keydown', e => {
                     break;
                 }
         }
-    else{ // You rolled the dice for count!
+    else{ // Choose among the optionsP1
         switch(code){
             case 'ArrowUp':
                 if(selectNum > 0) {selectNum--; optioncheckingPoint.position.z -= 0.7 + (selectNum == 5 ? (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6) : 0); }
@@ -456,12 +601,15 @@ window.addEventListener('keydown', e => {
                 if(selectNum < 11) {selectNum++; optioncheckingPoint.position.z += 0.7 + (selectNum == 6 ? (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6) : 0); }
                 break;
             case 'Enter':
-                if(moveSpeed < 0.001){
+                if(moveSpeed < 0.001 && (pChange === 0 ? optionsP1[selectNum] : optionsP2[selectNum]) === ''){
                     moveSpeed = 0.1;
                     firstRoll = true;
                     setReset = true;
+                    count = 3;
                     checkBoxes = [1, 1, 1, 1, 1];
                     SetCheckBox();
+                    CheckOption(selectNum);
+                    pChange = pChange === 0 ? 1 : 0;
                 }
                 break;
         }
