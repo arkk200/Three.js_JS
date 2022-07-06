@@ -109,6 +109,8 @@ function SummonDice(diceColor = 0xffffff, dotColor = 0xff0000, size = 1, posx = 
 
 // Summon Text Function
 let textMesh;
+
+// Categories
 const categoriesTextGroup = new THREE.Group();
 function SummonCategoriesText(str, posx = 0, posy = 0, posz = 0, siz = 1, textColor = 0x000000) {
     const loader = new FontLoader();
@@ -131,6 +133,7 @@ function SummonCategoriesText(str, posx = 0, posy = 0, posz = 0, siz = 1, textCo
     });
 }
 
+// PlayerSign
 const pSignTextGroup = new THREE.Group();
 function SummonPlayerSignText(str, posx = 0, posy = 0, posz = 0, siz = 1, textColor = 0xffffff) {
     const loader = new FontLoader();
@@ -154,7 +157,8 @@ function SummonPlayerSignText(str, posx = 0, posy = 0, posz = 0, siz = 1, textCo
     });
 }
 
-const OptionScoresTextGroup = new THREE.Group();
+// OptionScores
+const optionScoresTextGroup = new THREE.Group();
 function SummonOptionScoresText(str, posx = 0, posy = 0, posz = 0, siz = 1, textColor = 0x000000){
     const loader = new FontLoader();
     loader.load('./font/Teko_Bold.json', font => {
@@ -173,7 +177,79 @@ function SummonOptionScoresText(str, posx = 0, posy = 0, posz = 0, siz = 1, text
         textMesh = new THREE.Mesh(textGeo, new THREE.MeshPhongMaterial({color:textColor}));
         textMesh.position.set(posx, posy, posz);
         textMesh.rotation.x = Math.PI / -2;
-        OptionScoresTextGroup.add(textMesh);
+        optionScoresTextGroup.add(textMesh);
+    });
+}
+
+// TotalScore
+const totalScoreTextGroup = new THREE.Group();
+function SummonTotalScoreText(str, posx = 0, posy = 0, posz = 0, siz = 1, textColor = 0x000000){
+    const loader = new FontLoader();
+    loader.load('./font/Teko_Bold.json', font => {
+        const textGeo = new TextGeometry(str, {
+            font: font,
+            size: 0.5 * siz,
+            height: 0.1,
+            curveSegments: 10,
+            bevelEnabled: true,
+            bevelThickness: 0,
+            bevelSize: 0.0001,
+            bevelOffset: 0,
+            bevelSegments: 1
+        });
+        textGeo.center();
+        textMesh = new THREE.Mesh(textGeo, new THREE.MeshPhongMaterial({color:textColor}));
+        textMesh.position.set(posx, posy, posz);
+        textMesh.rotation.x = Math.PI / -2;
+        totalScoreTextGroup.add(textMesh);
+    });
+}
+
+// SubTotalScore
+const subTotalScoreTextGroup = new THREE.Group();
+function SummonSubTotalScoreText(str, posx = 0, posy = 0, posz = 0, siz = 1, textColor = 0x000000){
+    const loader = new FontLoader();
+    loader.load('./font/Teko_Bold.json', font => {
+        const textGeo = new TextGeometry(str, {
+            font: font,
+            size: 0.5 * siz,
+            height: 0.1,
+            curveSegments: 10,
+            bevelEnabled: true,
+            bevelThickness: 0,
+            bevelSize: 0.0001,
+            bevelOffset: 0,
+            bevelSegments: 1
+        });
+        textGeo.center();
+        textMesh = new THREE.Mesh(textGeo, new THREE.MeshPhongMaterial({color:textColor}));
+        textMesh.position.set(posx, posy, posz);
+        textMesh.rotation.x = Math.PI / -2;
+        subTotalScoreTextGroup.add(textMesh);
+    });
+}
+
+// +35 Bonus
+const plus35BonusTextGroup = new THREE.Group();
+function SummonPlus35BonusText(str, posx = 0, posy = 0, posz = 0, siz = 1, textColor = 0x000000){
+    const loader = new FontLoader();
+    loader.load('./font/Teko_Bold.json', font => {
+        const textGeo = new TextGeometry(str, {
+            font: font,
+            size: 0.5 * siz,
+            height: 0.1,
+            curveSegments: 10,
+            bevelEnabled: true,
+            bevelThickness: 0,
+            bevelSize: 0.0001,
+            bevelOffset: 0,
+            bevelSegments: 1
+        });
+        textGeo.center();
+        textMesh = new THREE.Mesh(textGeo, new THREE.MeshPhongMaterial({color:textColor}));
+        textMesh.position.set(posx, posy, posz);
+        textMesh.rotation.x = Math.PI / -2;
+        plus35BonusTextGroup.add(textMesh);
     });
 }
 
@@ -265,23 +341,57 @@ let pChange = 0; // P1: 0, P2: 1
 const optionsP1 = ['', '', '', '', '', '', '', '', '', '', '', ''];
 const optionsP2 = ['', '', '', '', '', '', '', '', '', '', '', ''];
 
+const optionScoreCheckingGroup = new THREE.Group();
+
 function SummonOptionScores(textColor = 0x000000, posx, posy, posz){
     for(let i = 0; i < 12; i++){
         SummonOptionScoresText(String((pChange === 0 ? optionsP1[i] : optionsP2[i])), posx + pChange * 1.6, posy, i * 0.7 + (i > 5 ? (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6): 0), 1, textColor);
     }
-    let sum = 0;
-    if(pChange === 0) optionsP1.forEach((value) => {
-        sum += Number(value);
-    })
-    else optionsP2.forEach((value) => {
-        sum += Number(value);
-    })
-    OptionScoresTextGroup.position.set(posx, posy, posz);
-    tableGroup.add(OptionScoresTextGroup);
+    SummonTotalScore(textColor, posx + 0.5 + pChange * 1.6, posy, posz);
+    optionScoresTextGroup.position.set(posx, posy, posz);
+    optionScoreCheckingGroup.add(optionScoresTextGroup);
+    tableGroup.add(optionScoreCheckingGroup);
 }
 
-// Summon Option Checking Point
-const optioncheckingPoint = CheckingPoint(0xff0000, 1, 90, -4, -2.8 - 2.15 + 0.35);
+function SummonTotalScore(textColor = 0xffffff, posx, posy, posz){
+    const totalScoreGroup = new THREE.Group();
+    let totalSum = 0, subTotalSum = 0, chA2S = 0;
+    if(pChange === 0) optionsP1.forEach((value, index) => {
+        totalSum += Number(value);
+        if(index < 6) subTotalSum += Number(value);
+    })
+    else optionsP2.forEach((value, index) => {
+        totalSum += Number(value);
+        if(index < 6) subTotalSum += Number(value);
+    })
+
+    totalScoreTextGroup.remove(totalScoreTextGroup.children[totalScoreTextGroup.children.length - 2]);
+    SummonTotalScoreText(`${totalSum}`, posx, posy, posz + 8.4 + (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6), 1, textColor);
+    totalScoreGroup.add(totalScoreTextGroup);
+    for(let i = 0; i < 6; i++){
+        if((pChange === 0 ? optionsP1[i] : optionsP2[i]) !== ''){
+            chA2S = 1;
+            break;
+        } else {
+            chA2S = 0;
+        }
+    }
+    if(chA2S === 1){
+        subTotalScoreTextGroup.remove(subTotalScoreTextGroup.children[subTotalScoreTextGroup.children.length - 2]);
+        SummonSubTotalScoreText(`${subTotalSum}/63`, posx, posy, posz + 4.2, 0.8, textColor);
+        console.log(subTotalScoreTextGroup.children);
+        totalScoreGroup.add(subTotalScoreTextGroup);
+    }
+    if(subTotalSum >= 63){
+        SummonPlus35BonusText('+35', posx, posy, posz, 1, 0x000000);
+        totalScoreGroup.add(plus35BonusTextGroup)
+    }
+    tableGroup.add(totalScoreGroup);
+}
+
+// Summon Option && pSign Checking Point
+const optionCheckingPoint = CheckingPoint(0xff0000, 1, 90, -4, -2.8 - 2.15 + 0.35);
+const pSignCheckingPoint = CheckingPoint(0xff0000, 1, 0, 1, -6.5);
 
 // Summon Score Table Function
 function SummonTable(tableColor = 0xffffff, textColor = 0x000000, posx = 0, posy = 0, posz = -15, size = 8){
@@ -307,7 +417,8 @@ function SummonTable(tableColor = 0xffffff, textColor = 0x000000, posx = 0, posy
     tableGroup.add(pSignGroup);
     tableMesh.rotation.x = Math.PI/2;
     tableGroup.add(tableMesh);
-    tableGroup.add(optioncheckingPoint);
+    tableGroup.add(optionCheckingPoint);
+    tableGroup.add(pSignCheckingPoint);
     tableGroup.position.set(posx, posy, posz);
     return tableGroup;
 }
@@ -494,6 +605,8 @@ let firstRoll = true;
 
 let count = 3;
 
+let turn = 0;
+
 let setReset = false;
 let moveSpeed = 0;
 
@@ -538,28 +651,28 @@ function animation(){
                 diceNumber[i] = diceRes;
             }
         }
-        
         console.log(diceNumber);
         isEnter = false;
         checkBoxes = [0, 0, 0, 0, 0];
         SetCheckBox();
         firstRoll = false;
+        turn++;
     }
     if(count === 0 && moveSpeed >= 0.001){
-        tableGroup.add(optioncheckingPoint);
+        tableGroup.add(optionCheckingPoint);
         scene.remove(checkingPoint);
-        camera.position.z -= moveSpeed;
-        camera.position.y += moveSpeed * 1.6;
-        table.position.z += moveSpeed * 1.4;
-        moveSpeed *= 0.98;
+        camera.position.z -= moveSpeed * 1.5;
+        camera.position.y += moveSpeed * 2.6;
+        table.position.z += moveSpeed * 2.2;
+        moveSpeed *= 0.94;
     }
-    if(setReset){
+    if(setReset && turn < 24){
         scene.add(checkingPoint);
-        tableGroup.remove(optioncheckingPoint);
-        camera.position.z += moveSpeed;
-        camera.position.y -= moveSpeed * 1.6;
-        table.position.z -= moveSpeed * 1.4;
-        moveSpeed *= 0.98;
+        tableGroup.remove(optionCheckingPoint);
+        camera.position.z += moveSpeed * 1.5;
+        camera.position.y -= moveSpeed * 2.6;
+        table.position.z -= moveSpeed * 2.2;
+        moveSpeed *= 0.94;
         if(moveSpeed < 0.001) setReset = false;
     }
     checkingPoint.position.set(-4 + cpPosx * 2, 0, -1.5);
@@ -588,21 +701,23 @@ window.addEventListener('keydown', e => {
                     });
                     if(chck === 1) {isEnter = true; count--;}
                     else {count = 0;}
-                    if(count == 0) moveSpeed = 0.1;
-                    break;
+                    if(count == 0) moveSpeed = 0.2;
                 }
+                pSignCheckingPoint.position.x = 1 + pChange * 1.6;
+                break;
+                
         }
     else{ // Choose among the optionsP1
         switch(code){
             case 'ArrowUp':
-                if(selectNum > 0) {selectNum--; optioncheckingPoint.position.z -= 0.7 + (selectNum == 5 ? (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6) : 0); }
+                if(selectNum > 0) {selectNum--; optionCheckingPoint.position.z -= 0.7 + (selectNum == 5 ? (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6) : 0); }
                 break;
             case 'ArrowDown':
-                if(selectNum < 11) {selectNum++; optioncheckingPoint.position.z += 0.7 + (selectNum == 6 ? (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6) : 0); }
+                if(selectNum < 11) {selectNum++; optionCheckingPoint.position.z += 0.7 + (selectNum == 6 ? (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6) : 0); }
                 break;
             case 'Enter':
                 if(moveSpeed < 0.001 && (pChange === 0 ? optionsP1[selectNum] : optionsP2[selectNum]) === ''){
-                    moveSpeed = 0.1;
+                    moveSpeed = 0.2;
                     firstRoll = true;
                     setReset = true;
                     count = 3;
