@@ -678,8 +678,8 @@ function animation(){
     }
     if(showTable){
         camera.position.z -= moveSpeed * 1.5;
-        camera.position.y += moveSpeed * 2.6;
-        table.position.z += moveSpeed * 2.2;
+        camera.position.y += moveSpeed * 2.8;
+        table.position.z += moveSpeed * 1.9;
         moveSpeed *= 0.94;
     }
     checkingPoint.position.set(-4 + cpPosx * 2, 0, -1.5);
@@ -701,7 +701,7 @@ window.addEventListener('keydown', e => {
                 CheckBox(cpPosx);
                 break;
             case 'Enter':
-                if(moveSpeed < 0.001){
+                if(moveSpeed < 0.001 && !showTable){
                     let chck = 0;
                     checkBoxes.forEach((value) => {
                         if(value == 1) chck = 1;
@@ -710,13 +710,12 @@ window.addEventListener('keydown', e => {
                     else {count = 0;}
                     if(count == 0) moveSpeed = 0.2;
                 }
-                pSignCheckingPoint.position.x = 1 + pChange * 1.6;
                 break;
             case 'ShiftLeft':
             case 'ShiftRight':
                 if(showTable == false && moveSpeed < 0.001){
                     tableGroup.add(optionCheckingPoint);
-                    scene.remove(checkingPoint);
+                    // scene.remove(checkingPoint);
                     showTable = true;
                     moveSpeed = 0.2;
                 }
@@ -740,15 +739,17 @@ window.addEventListener('keydown', e => {
                     SetCheckBox();
                     CheckOption(selectNum);
                     pChange = pChange === 0 ? 1 : 0;
+                    pSignCheckingPoint.position.x = 1 + pChange * 1.6;
                     turn++;
                 }
+                
                 break;
         }
     }
 });
 window.addEventListener('keyup', e => {
-    if((e.code == 'ShiftLeft' || e.code == 'ShiftRight') && count !== 0) {
-        scene.add(checkingPoint);
+    if((e.code == 'ShiftLeft' || e.code == 'ShiftRight') && count !== 0 && showTable === true) {
+        // scene.add(checkingPoint);
         tableGroup.remove(optionCheckingPoint);
         showTable = false;
         moveSpeed = 0;
