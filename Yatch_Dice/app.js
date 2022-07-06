@@ -366,7 +366,7 @@ function SummonTotalScore(textColor = 0xffffff, posx, posy, posz){
     })
 
     totalScoreTextGroup.remove(totalScoreTextGroup.children[totalScoreTextGroup.children.length - 2]);
-    SummonTotalScoreText(`${totalSum}`, posx, posy, posz + 8.4 + (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6), 1, textColor);
+    SummonTotalScoreText(`${totalSum + (subTotalSum >= 63 ? 1 : 0) * 63}`, posx, posy, posz + 8.4 + (-2.45 + 3.65 + 0.35) - (-2.8 - 2.15 + 0.35 + 0.7 * 6), 1, textColor);
     totalScoreGroup.add(totalScoreTextGroup);
     for(let i = 0; i < 6; i++){
         if((pChange === 0 ? optionsP1[i] : optionsP2[i]) !== ''){
@@ -383,7 +383,7 @@ function SummonTotalScore(textColor = 0xffffff, posx, posy, posz){
         totalScoreGroup.add(subTotalScoreTextGroup);
     }
     if(subTotalSum >= 63){
-        SummonPlus35BonusText('+35', posx, posy, posz, 1, 0x000000);
+        SummonPlus35BonusText('+35', posx, posy, posz + 4.9, 1, 0x000000);
         totalScoreGroup.add(plus35BonusTextGroup)
     }
     tableGroup.add(totalScoreGroup);
@@ -614,6 +614,8 @@ let cpPosx = 0;
 
 let selectNum = 0;
 
+let showTable = false;
+
 function animation(){
     if(isEnter){
         for(let i = 0; i < 5; i++){
@@ -656,7 +658,6 @@ function animation(){
         checkBoxes = [0, 0, 0, 0, 0];
         SetCheckBox();
         firstRoll = false;
-        turn++;
     }
     if(count === 0 && moveSpeed >= 0.001){
         tableGroup.add(optionCheckingPoint);
@@ -674,6 +675,12 @@ function animation(){
         table.position.z -= moveSpeed * 2.2;
         moveSpeed *= 0.94;
         if(moveSpeed < 0.001) setReset = false;
+    }
+    if(showTable){
+        camera.position.z -= moveSpeed * 1.5;
+        camera.position.y += moveSpeed * 2.6;
+        table.position.z += moveSpeed * 2.2;
+        moveSpeed *= 0.94;
     }
     checkingPoint.position.set(-4 + cpPosx * 2, 0, -1.5);
     renderer.render(scene, camera);
@@ -705,7 +712,15 @@ window.addEventListener('keydown', e => {
                 }
                 pSignCheckingPoint.position.x = 1 + pChange * 1.6;
                 break;
-                
+            case 'ShiftLeft':
+            case 'ShiftRight':
+                if(showTable == false && moveSpeed < 0.001){
+                    tableGroup.add(optionCheckingPoint);
+                    scene.remove(checkingPoint);
+                    showTable = true;
+                    moveSpeed = 0.2;
+                }
+                break;
         }
     else{ // Choose among the optionsP1
         switch(code){
@@ -725,8 +740,19 @@ window.addEventListener('keydown', e => {
                     SetCheckBox();
                     CheckOption(selectNum);
                     pChange = pChange === 0 ? 1 : 0;
+                    turn++;
                 }
                 break;
         }
+    }
+});
+window.addEventListener('keyup', e => {
+    if((e.code == 'ShiftLeft' || e.code == 'ShiftRight') && count !== 0) {
+        scene.add(checkingPoint);
+        tableGroup.remove(optionCheckingPoint);
+        showTable = false;
+        moveSpeed = 0;
+        camera.position.set(0, 12, 2);
+        table.position.set(0, 0, -15);
     }
 });
